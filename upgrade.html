@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TheSafeChain — Upgrade to Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0C0F; --bg2: #0F1115;
+  --green: #00D27A; --green-dim: rgba(0,210,122,0.12); --green-glow: rgba(0,210,122,0.25);
+  --red: #FF4D4D; --amber: #FFB547;
+  --text: #F0F2F5; --text-muted: #6B7280; --text-dim: #9CA3AF;
+  --border: rgba(255,255,255,0.07); --border-green: rgba(0,210,122,0.3);
+  --radius: 14px; --radius-sm: 8px;
+  --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+}
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(0,210,122,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,122,0.03) 1px, transparent 1px);
+  background-size: 48px 48px; pointer-events: none; z-index: 0;
+}
+.glow-orb { position: fixed; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(0,210,122,0.07) 0%, transparent 70%); top: -150px; left: -100px; pointer-events: none; z-index: 0; }
+
+nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px; border-bottom: 1px solid var(--border);
+  background: rgba(10,12,15,0.85); backdrop-filter: blur(20px);
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-icon { width: 36px; height: 36px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--green-glow); }
+.logo-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); }
+.logo-name span { color: var(--green); }
+.back-link { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.back-link:hover { color: var(--green); }
+
+.page { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 56px 24px 100px; }
+
+.page-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--green-dim); border: 1px solid var(--border-green); padding: 5px 14px; border-radius: 99px; font-size: 12px; color: var(--green); margin-bottom: 20px; font-family: var(--font-mono); }
+.page-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; margin-bottom: 8px; line-height: 1.1; }
+.page-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 40px; line-height: 1.6; }
+
+/* PLAN CARD */
+.plan-card {
+  background: var(--bg2); border: 1px solid var(--border-green); border-radius: var(--radius);
+  padding: 28px; margin-bottom: 28px; position: relative; overflow: hidden;
+}
+.plan-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
+.plan-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.plan-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+.plan-price { text-align: right; }
+.plan-price-val { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--green); line-height: 1; }
+.plan-price-per { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.plan-features li { font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 10px; }
+.plan-features li::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--green); flex-shrink: 0; opacity: 0.8; }
+
+/* STEPS */
+.steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.step { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px 22px; transition: border-color 0.2s; }
+.step.active { border-color: var(--border-green); }
+.step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); color: var(--text-muted); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-mono); transition: all 0.3s; }
+.step-num.active { background: var(--green-dim); color: var(--green); border: 1px solid var(--border-green); }
+.step-num.done { background: var(--green); color: #000; }
+.step-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+.step-desc { font-size: 13px; color: var(--text-muted); margin-left: 40px; margin-top: 4px; line-height: 1.5; }
+.wallet-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; margin: 12px 0 0 40px; display: none; }
+.wallet-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: var(--font-mono); }
+.wallet-addr { font-size: 12px; font-family: var(--font-mono); color: var(--green); word-break: break-all; }
+
+/* BUTTONS */
+.pay-btn {
+  width: 100%; padding: 16px;
+  background: var(--green); color: #000;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 16px; font-weight: 700; font-family: var(--font-body);
+  cursor: pointer; transition: all 0.2s; margin-bottom: 12px;
+  box-shadow: 0 0 30px var(--green-glow);
+}
+.pay-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--green-glow); }
+.pay-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.check-btn {
+  width: 100%; padding: 14px;
+  background: transparent; color: var(--green);
+  border: 1px solid var(--border-green); border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; display: none; margin-bottom: 12px; transition: all 0.2s;
+}
+.check-btn:hover { background: var(--green-dim); }
+
+.pay-note { font-size: 12px; color: var(--text-muted); text-align: center; font-family: var(--font-mono); }
+
+/* STATUS */
+.status-box { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 14px; display: none; margin-bottom: 16px; border: 1px solid; }
+.status-pending { background: rgba(255,181,71,0.08); border-color: rgba(255,181,71,0.3); color: var(--amber); }
+.status-success { background: var(--green-dim); border-color: var(--border-green); color: var(--green); }
+.status-error { background: rgba(255,77,77,0.08); border-color: rgba(255,77,77,0.3); color: var(--red); }
+
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  nav { padding: 16px 20px; }
+  .page { padding: 40px 16px 80px; }
+  .page-title { font-size: 28px; }
+}
+
+.lang-wrap { position: relative; z-index: 999; }
+.lang-current { display: flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 13px; font-family: var(--font-mono); padding: 7px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; user-select: none; }
+.lang-current:hover { border-color: var(--border-green); color: var(--green); }
+.lang-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #0F1115; border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm); overflow: hidden; min-width: 150px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity 0.15s, transform 0.15s; }
+.lang-menu.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+.lang-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 13px; color: #9CA3AF; cursor: pointer; transition: background 0.1s; border: none; background: none; width: 100%; text-align: left; font-family: var(--font-body); }
+.lang-item:hover { background: rgba(0,210,122,0.1); color: #00D27A; }
+.lang-item.selected { color: #00D27A; }
+</style>
+</head>
+<body>
+<div class="glow-orb"></div>
+
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" stroke="#000" stroke-width="1.5" fill="none"/>
+        <path d="M9 6L11.5 7.5V10.5L9 12L6.5 10.5V7.5L9 6Z" fill="#000"/>
+      </svg>
+    </div>
+    <span class="logo-name">the<span>safechain</span></span>
+  </a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="lang-wrap" id="lang-wrap">
+      <div class="lang-current" id="lang-current">🇺🇸 EN ▾</div>
+      <div class="lang-menu" id="lang-menu">
+        <button class="lang-item selected" data-lang="en">🇺🇸 English</button>
+        <button class="lang-item" data-lang="es">🇪🇸 Español</button>
+        <button class="lang-item" data-lang="zh">🇨🇳 中文</button>
+        <button class="lang-item" data-lang="ja">🇯🇵 日本語</button>
+      </div>
+    </div>
+    <a href="/dashboard.html" class="back-link" id="back-link">← Back to dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-badge">Upgrade</div>
+  <div class="page-title">Go Pro.<br>Pay in crypto.</div>
+  <div class="page-sub">Direct on-chain payment. No KYC, no banks, no middlemen. Activation is instant once confirmed.</div>
+
+  <div class="plan-card">
+    <div class="plan-header">
+      <div class="plan-name">Pro plan</div>
+      <div class="plan-price">
+        <div class="plan-price-val">$12</div>
+        <div class="plan-price-per">per month · USDC</div>
+      </div>
+    </div>
+    <ul class="plan-features">
+      <li>Unlimited contract scans</li>
+      <li>Full wallet portfolio analysis</li>
+      <li>Deployer address info</li>
+      <li>All EVM networks</li>
+      <li>8+ security checks per contract</li>
+      <li style="opacity:0.5;">Real-time alerts <span style="font-size:10px;background:rgba(0,210,122,0.15);color:#00D27A;padding:2px 6px;border-radius:99px;margin-left:6px;">Coming soon</span></li>
+      <li style="opacity:0.5;">API access <span style="font-size:10px;background:rgba(0,210,122,0.15);color:#00D27A;padding:2px 6px;border-radius:99px;margin-left:6px;">Coming soon</span></li>
+    </ul>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step1">
+      <div class="step-header">
+        <div class="step-num active" id="step1-num">1</div>
+        <div class="step-title">Connect your wallet</div>
+      </div>
+      <div class="step-desc" id="step1-desc">We need your address to activate Pro after payment.</div>
+      <div class="wallet-box" id="wallet-box">
+        <div class="wallet-label">Connected wallet</div>
+        <div class="wallet-addr" id="connected-wallet">—</div>
+      </div>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-header">
+        <div class="step-num" id="step2-num">2</div>
+        <div class="step-title">Send 12 USDC</div>
+      </div>
+      <div class="step-desc">MetaMask will ask you to approve a transfer of 12 USDC directly to TheSafeChain.</div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-header">
+        <div class="step-num" id="step3-num">3</div>
+        <div class="step-title">Instant activation</div>
+      </div>
+      <div class="step-desc">Once confirmed on-chain, your Pro plan activates automatically.</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status-box"></div>
+  <button class="pay-btn" id="pay-btn" onclick="handlePayment()">Connect wallet & pay 12 USDC</button>
+  <button class="check-btn" id="check-btn" onclick="checkPayment()">I've paid — activate my Pro plan ↗</button>
+  <div class="pay-note">Payment goes directly to TheSafeChain's wallet · No middlemen</div>
+</div>
+
+<script>
+const BACKEND = 'http://localhost:5001';
+const OWNER_WALLET = '0x5f4b9a49e3Ec1B0f630f390F5a45bFEA3ee8fAfD';
+const USDC_CONTRACT = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const USDC_ABI = ["function transfer(address to, uint256 amount) returns (bool)", "function decimals() view returns (uint8)"];
+
+let connectedWallet = null;
+
+function showStatus(msg, type) {
+  const box = document.getElementById('status-box');
+  box.textContent = msg;
+  box.className = `status-box status-${type}`;
+  box.style.display = 'block';
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    const num = document.getElementById(`step${i}-num`);
+    const step = document.getElementById(`step${i}`);
+    if (i < n) { num.className = 'step-num done'; num.textContent = '✓'; step.classList.remove('active'); }
+    else if (i === n) { num.className = 'step-num active'; step.classList.add('active'); }
+    else { num.className = 'step-num'; step.classList.remove('active'); }
+  }
+}
+
+async function handlePayment() {
+  if (typeof window.ethereum === 'undefined') { showStatus('MetaMask not detected. Please install MetaMask.', 'error'); return; }
+  const btn = document.getElementById('pay-btn');
+
+  if (!connectedWallet) {
+    btn.innerHTML = '<span class="spinner"></span>Connecting...';
+    btn.disabled = true;
+    try {
+      let accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length === 0) accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      connectedWallet = accounts[0];
+      document.getElementById('connected-wallet').textContent = connectedWallet;
+      document.getElementById('wallet-box').style.display = 'block';
+      document.getElementById('step1-desc').textContent = '✓ Wallet connected successfully';
+      setStep(2);
+      btn.innerHTML = 'Pay 12 USDC →';
+      btn.disabled = false;
+      return;
+    } catch(e) {
+      showStatus('Wallet connection cancelled.', 'error');
+      btn.innerHTML = 'Connect wallet & pay 12 USDC';
+      btn.disabled = false;
+      return;
+    }
+  }
+
+  btn.innerHTML = '<span class="spinner"></span>Waiting for approval...';
+  btn.disabled = true;
+  showStatus('Please approve the transaction in MetaMask...', 'pending');
+
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const usdc = new ethers.Contract(USDC_CONTRACT, USDC_ABI, signer);
+    const decimals = await usdc.decimals();
+    const amount = ethers.utils.parseUnits('12', decimals);
+    const tx = await usdc.transfer(OWNER_WALLET, amount);
+    showStatus('Transaction sent! Waiting for on-chain confirmation...', 'pending');
+    btn.innerHTML = '<span class="spinner"></span>Confirming on-chain...';
+    await tx.wait();
+    setStep(3);
+    btn.style.display = 'none';
+    document.getElementById('check-btn').style.display = 'block';
+    showStatus('Payment confirmed! Click below to activate your Pro plan.', 'success');
+  } catch(e) {
+    const msg = e.code === 4001 ? 'Transaction rejected.' : 'Transaction failed. Please try again.';
+    showStatus(msg, 'error');
+    btn.innerHTML = 'Pay 12 USDC →';
+    btn.disabled = false;
+  }
+}
+
+async function checkPayment() {
+  if (!connectedWallet) return;
+  const btn = document.getElementById('check-btn');
+  btn.innerHTML = '<span class="spinner"></span>Verifying on-chain...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BACKEND}/api/check-payment?wallet=${connectedWallet}`);
+    const data = await res.json();
+    if (data.is_pro) {
+      document.getElementById(`step3-num`).className = 'step-num done';
+      document.getElementById(`step3-num`).textContent = '✓';
+      showStatus('Pro plan activated! Redirecting to your dashboard...', 'success');
+      btn.style.display = 'none';
+      setTimeout(() => { window.location.href = '/dashboard.html'; }, 2000);
+    } else {
+      showStatus('Payment not found yet. Transactions take 1-2 minutes. Try again shortly.', 'pending');
+      btn.innerHTML = 'Check again ↗';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    showStatus('Could not verify. Make sure the backend is running.', 'error');
+    btn.innerHTML = 'Try again';
+    btn.disabled = false;
+  }
+}
+
+window.addEventListener('load', async () => {
+  if (typeof window.ethereum !== 'undefined') {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length > 0) {
+      connectedWallet = accounts[0];
+      document.getElementById('connected-wallet').textContent = connectedWallet;
+      document.getElementById('wallet-box').style.display = 'block';
+      document.getElementById('step1-desc').textContent = '✓ Wallet connected successfully';
+      setStep(2);
+      document.getElementById('pay-btn').textContent = 'Pay 12 USDC →';
+    }
+  }
+});
+
+var UP_T = {
+  en: {
+    back: '← Back to dashboard',
+    badge: 'Upgrade',
+    title: 'Go Pro.<br>Pay in crypto.',
+    sub: 'Direct on-chain payment. No KYC, no banks, no middlemen. Activation is instant once confirmed.',
+    plan_name: 'Pro plan', plan_per: 'per month · USDC',
+    f1: 'Unlimited contract scans', f2: 'Full wallet portfolio analysis',
+    f3: 'Complete deployer history', f4: 'Real-time dangerous token alerts',
+    f5: 'Wallet permission scanner', f6: 'All EVM networks', f7: 'API access',
+    s1_title: 'Connect your wallet', s1_desc: 'We need your address to activate Pro after payment.',
+    s1_done: '✓ Wallet connected successfully',
+    s2_title: 'Send 12 USDC', s2_desc: 'MetaMask will ask you to approve a transfer of 12 USDC directly to TheSafeChain.',
+    s3_title: 'Instant activation', s3_desc: 'Once confirmed on-chain, your Pro plan activates automatically.',
+    pay_btn: 'Connect wallet & pay 12 USDC',
+    pay_btn2: 'Pay 12 USDC →',
+    check_btn: "I've paid — activate my Pro plan ↗",
+    pay_note: "Payment goes directly to TheSafeChain's wallet · No middlemen",
+    wallet_label: 'Connected wallet',
+    status_approve: 'Please approve the transaction in MetaMask...',
+    status_sent: 'Transaction sent! Waiting for on-chain confirmation...',
+    status_confirmed: 'Payment confirmed! Click below to activate your Pro plan.',
+    status_activated: 'Pro plan activated! Redirecting to your dashboard...',
+    status_not_found: 'Payment not found yet. Transactions take 1-2 minutes. Try again shortly.',
+    status_rejected: 'Transaction rejected.',
+    status_failed: 'Transaction failed. Please try again.',
+    check_again: 'Check again ↗',
+  },
+  es: {
+    back: '← Volver al dashboard',
+    badge: 'Mejorar',
+    title: 'Pásate a Pro.<br>Paga en crypto.',
+    sub: 'Pago directo on-chain. Sin KYC, sin bancos, sin intermediarios. La activación es instantánea.',
+    plan_name: 'Plan Pro', plan_per: 'al mes · USDC',
+    f1: 'Análisis ilimitados de contratos', f2: 'Análisis completo de portfolio',
+    f3: 'Historial completo del deployer', f4: 'Alertas de tokens peligrosos en tiempo real',
+    f5: 'Escáner de permisos de wallet', f6: 'Todas las redes EVM', f7: 'Acceso API',
+    s1_title: 'Conecta tu wallet', s1_desc: 'Necesitamos tu dirección para activar Pro después del pago.',
+    s1_done: '✓ Wallet conectada correctamente',
+    s2_title: 'Envía 12 USDC', s2_desc: 'MetaMask te pedirá aprobar una transferencia de 12 USDC directamente a TheSafeChain.',
+    s3_title: 'Activación instantánea', s3_desc: 'Una vez confirmado on-chain, tu plan Pro se activa automáticamente.',
+    pay_btn: 'Conectar wallet y pagar 12 USDC',
+    pay_btn2: 'Pagar 12 USDC →',
+    check_btn: 'He pagado — activar mi plan Pro ↗',
+    pay_note: 'El pago va directamente a la wallet de TheSafeChain · Sin intermediarios',
+    wallet_label: 'Wallet conectada',
+    status_approve: 'Aprueba la transacción en MetaMask...',
+    status_sent: 'Transacción enviada. Esperando confirmación on-chain...',
+    status_confirmed: '¡Pago confirmado! Haz clic abajo para activar tu plan Pro.',
+    status_activated: '¡Plan Pro activado! Redirigiendo al dashboard...',
+    status_not_found: 'Pago no encontrado aún. Las transacciones tardan 1-2 minutos. Inténtalo de nuevo.',
+    status_rejected: 'Transacción rechazada.',
+    status_failed: 'Transacción fallida. Por favor inténtalo de nuevo.',
+    check_again: 'Comprobar de nuevo ↗',
+  },
+  zh: {
+    back: '← 返回仪表板',
+    badge: '升级',
+    title: '升级到专业版。<br>用加密货币支付。',
+    sub: '直接链上支付。无KYC，无银行，无中间商。确认后即时激活。',
+    plan_name: '专业版计划', plan_per: '每月 · USDC',
+    f1: '无限合约扫描', f2: '完整钱包组合分析',
+    f3: '完整部署者历史', f4: '危险代币实时警报',
+    f5: '钱包权限扫描器', f6: '所有EVM网络', f7: 'API访问',
+    s1_title: '连接您的钱包', s1_desc: '我们需要您的地址在付款后激活专业版。',
+    s1_done: '✓ 钱包连接成功',
+    s2_title: '发送12 USDC', s2_desc: 'MetaMask将要求您批准直接向TheSafeChain转账12 USDC。',
+    s3_title: '即时激活', s3_desc: '链上确认后，您的专业版计划将自动激活。',
+    pay_btn: '连接钱包并支付12 USDC',
+    pay_btn2: '支付12 USDC →',
+    check_btn: '我已付款 — 激活专业版 ↗',
+    pay_note: '付款直接发送到TheSafeChain的钱包 · 无中间商',
+    wallet_label: '已连接钱包',
+    status_approve: '请在MetaMask中批准交易...',
+    status_sent: '交易已发送！等待链上确认...',
+    status_confirmed: '付款已确认！点击下方激活您的专业版计划。',
+    status_activated: '专业版已激活！正在跳转到仪表板...',
+    status_not_found: '尚未找到付款。交易需要1-2分钟。请稍后再试。',
+    status_rejected: '交易被拒绝。',
+    status_failed: '交易失败。请重试。',
+    check_again: '再次检查 ↗',
+  },
+  ja: {
+    back: '← ダッシュボードに戻る',
+    badge: 'アップグレード',
+    title: 'プロにアップグレード。<br>暗号通貨で支払い。',
+    sub: '直接オンチェーン決済。KYCなし、銀行なし、仲介者なし。確認後即座に有効化。',
+    plan_name: 'プロプラン', plan_per: '月額 · USDC',
+    f1: '無制限コントラクトスキャン', f2: 'ウォレットポートフォリオ完全分析',
+    f3: 'デプロイヤー履歴完全版', f4: '危険トークンリアルタイムアラート',
+    f5: 'ウォレット権限スキャナー', f6: '全EVMネットワーク', f7: 'APIアクセス',
+    s1_title: 'ウォレットを接続', s1_desc: '支払い後にプロを有効化するためにアドレスが必要です。',
+    s1_done: '✓ ウォレット接続成功',
+    s2_title: '12 USDCを送信', s2_desc: 'MetaMaskがTheSafeChainへの12 USDC転送の承認を求めます。',
+    s3_title: '即時有効化', s3_desc: 'オンチェーンで確認されると、プロプランが自動的に有効化されます。',
+    pay_btn: 'ウォレットを接続して12 USDCを支払う',
+    pay_btn2: '12 USDCを支払う →',
+    check_btn: '支払い済み — プロプランを有効化 ↗',
+    pay_note: '支払いはTheSafeChainのウォレットに直接送られます · 仲介者なし',
+    wallet_label: '接続済みウォレット',
+    status_approve: 'MetaMaskでトランザクションを承認してください...',
+    status_sent: 'トランザクション送信済み！オンチェーン確認を待っています...',
+    status_confirmed: '支払い確認済み！下のボタンをクリックしてプロプランを有効化してください。',
+    status_activated: 'プロプラン有効化！ダッシュボードにリダイレクトします...',
+    status_not_found: 'まだ支払いが見つかりません。1-2分かかります。後でもう一度お試しください。',
+    status_rejected: 'トランザクションが拒否されました。',
+    status_failed: 'トランザクションが失敗しました。もう一度お試しください。',
+    check_again: '再確認 ↗',
+  }
+};
+
+var upLangLabels = { en: '🇺🇸 EN', es: '🇪🇸 ES', zh: '🇨🇳 中文', ja: '🇯🇵 JP' };
+
+function applyUpgradeLang(lang) {
+  var t = UP_T[lang];
+  if (!t) return;
+  var q = function(s) { return document.querySelector(s); };
+  var qa = function(s) { return document.querySelectorAll(s); };
+
+  var bl = document.getElementById('back-link'); if (bl) bl.textContent = t.back;
+  var pb = document.querySelector('.page-badge'); if (pb) pb.textContent = t.badge;
+  var pt = document.querySelector('.page-title'); if (pt) pt.innerHTML = t.title;
+  var ps = document.querySelector('.page-sub'); if (ps) ps.textContent = t.sub;
+  var pn = document.querySelector('.plan-name'); if (pn) pn.textContent = t.plan_name;
+  var pp = document.querySelector('.plan-price-per'); if (pp) pp.textContent = t.plan_per;
+
+  var li = document.querySelectorAll('.plan-features li');
+  var feats = [t.f1,t.f2,t.f3,t.f4,t.f5,t.f6,t.f7];
+  li.forEach(function(el,i) { if (feats[i]) el.textContent = feats[i]; });
+
+  var steps = document.querySelectorAll('.step');
+  if (steps[0]) {
+    var st1 = steps[0].querySelector('.step-title'); if (st1) st1.textContent = t.s1_title;
+    var sd1 = steps[0].querySelector('.step-desc'); if (sd1) sd1.textContent = t.s1_desc;
+  }
+  if (steps[1]) {
+    var st2 = steps[1].querySelector('.step-title'); if (st2) st2.textContent = t.s2_title;
+    var sd2 = steps[1].querySelector('.step-desc'); if (sd2) sd2.textContent = t.s2_desc;
+  }
+  if (steps[2]) {
+    var st3 = steps[2].querySelector('.step-title'); if (st3) st3.textContent = t.s3_title;
+    var sd3 = steps[2].querySelector('.step-desc'); if (sd3) sd3.textContent = t.s3_desc;
+  }
+
+  var paybtn = document.getElementById('pay-btn');
+  if (paybtn) paybtn.textContent = connectedWallet ? t.pay_btn2 : t.pay_btn;
+  var pnote = document.querySelector('.pay-note'); if (pnote) pnote.textContent = t.pay_note;
+  var wl = document.querySelector('.wallet-label'); if (wl) wl.textContent = t.wallet_label;
+
+  document.getElementById('lang-current').textContent = upLangLabels[lang] + ' ▾';
+  document.querySelectorAll('.lang-item').forEach(function(item) {
+    item.classList.toggle('selected', item.dataset.lang === lang);
+  });
+  localStorage.setItem('cg_lang', lang);
+}
+
+document.getElementById('lang-current').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('lang-menu').classList.toggle('visible');
+});
+document.querySelectorAll('.lang-item').forEach(function(item) {
+  item.addEventListener('click', function(e) {
+    e.stopPropagation();
+    applyUpgradeLang(this.dataset.lang);
+    document.getElementById('lang-menu').classList.remove('visible');
+  });
+});
+document.addEventListener('click', function() {
+  document.getElementById('lang-menu').classList.remove('visible');
+});
+window.addEventListener('load', function() {
+  var saved = localStorage.getItem('cg_lang') || 'en';
+  applyUpgradeLang(saved);
+});
+
+</script>
+</body>
+</html>

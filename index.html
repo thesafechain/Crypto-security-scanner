@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TheSafeChain — Crypto Security Scanner</title>
+<meta name="description" content="TheSafeChain — Scan any crypto contract before you invest. Detect rugpulls, honeypots, dangerous permissions and more. Free crypto security scanner for Ethereum, BSC, Polygon and more.">
+<meta name="keywords" content="crypto security, contract scanner, rugpull detector, honeypot checker, token security, DeFi safety, blockchain security">
+<meta name="author" content="TheSafeChain">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:title" content="TheSafeChain — Crypto Contract Security Scanner">
+<meta property="og:description" content="Scan any crypto contract before you risk your money. Detect rugpulls, honeypots and dangerous tokens instantly.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thesafechain.xyz">
+<meta property="og:image" content="https://thesafechain.xyz/og-image.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TheSafeChain — Crypto Security Scanner">
+<meta name="twitter:description" content="Scan any contract before you invest. Free honeypot & rugpull detector.">
+<meta name="twitter:image" content="https://thesafechain.xyz/og-image.png">
+
+<!-- Canonical -->
+<link rel="canonical" href="https://thesafechain.xyz">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0C0F;
+  --bg2: #0F1115;
+  --bg3: #141619;
+  --green: #00D27A;
+  --green-dim: rgba(0,210,122,0.12);
+  --green-glow: rgba(0,210,122,0.25);
+  --red: #FF4D4D;
+  --amber: #FFB547;
+  --text: #F0F2F5;
+  --text-muted: #6B7280;
+  --text-dim: #9CA3AF;
+  --border: rgba(255,255,255,0.07);
+  --border-green: rgba(0,210,122,0.3);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+/* GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,210,122,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,210,122,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* GLOW */
+.glow-orb {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,210,122,0.08) 0%, transparent 70%);
+  top: -200px;
+  right: -100px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,12,15,0.8);
+  backdrop-filter: blur(20px);
+}
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--green);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px var(--green-glow);
+}
+.logo-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); }
+.logo-name span { color: var(--green); }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-link { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.nav-link:hover { color: var(--text); }
+.wallet-pill {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--green-dim);
+  border: 1px solid var(--border-green);
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  color: var(--green);
+}
+.wallet-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+.connect-btn {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px var(--green-glow);
+}
+.connect-btn:hover { transform: translateY(-1px); box-shadow: 0 0 30px var(--green-glow); }
+
+/* HERO */
+.hero {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 160px 48px 80px;
+  text-align: center;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green-dim);
+  border: 1px solid var(--border-green);
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--green);
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(42px, 7vw, 76px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s ease 0.1s both;
+}
+.hero h1 .accent { color: var(--green); }
+.hero h1 .dim { color: var(--text-muted); }
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 560px;
+  margin: 0 auto 48px;
+  font-weight: 300;
+  animation: fadeUp 0.6s ease 0.2s both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SEARCH */
+.search-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  animation: fadeUp 0.6s ease 0.3s both;
+}
+.chain-select {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.chain-btn {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chain-btn:hover { border-color: var(--border-green); color: var(--green); }
+.chain-btn.active { background: var(--green-dim); border-color: var(--border-green); color: var(--green); }
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 6px 6px 20px;
+  gap: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-box:focus-within {
+  border-color: var(--border-green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+}
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: var(--font-mono);
+  color: var(--text);
+  background: transparent;
+}
+.search-box input::placeholder { font-family: var(--font-body); color: var(--text-muted); font-size: 14px; }
+.scan-btn {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.scan-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--green-glow); }
+.scan-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.hint { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+
+.error-box {
+  background: rgba(255,77,77,0.1);
+  border: 1px solid rgba(255,77,77,0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #FF8080;
+  display: none;
+  margin-top: 12px;
+  text-align: left;
+}
+
+/* STATS */
+.stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  max-width: 700px;
+  margin: 64px auto 0;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: fadeUp 0.6s ease 0.4s both;
+}
+.stat {
+  background: var(--bg2);
+  padding: 24px 28px;
+  text-align: center;
+}
+.stat-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+.stat-label { font-size: 13px; color: var(--text-muted); }
+
+/* LOADING */
+.loading-wrap { display: none; text-align: center; padding: 48px; position: relative; z-index: 1; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-wrap p { font-size: 14px; color: var(--text-muted); }
+.progress-text { font-size: 12px; color: var(--text-muted); opacity: 0.5; margin-top: 6px; font-family: var(--font-mono); }
+
+/* RESULT */
+.result-wrap { max-width: 760px; margin: 48px auto 0; padding: 0 48px; display: none; position: relative; z-index: 1; }
+.result-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.result-top { padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.token-info { display: flex; align-items: center; gap: 14px; }
+.token-av { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; font-weight: 700; flex-shrink: 0; }
+.av-low { background: rgba(0,210,122,0.15); color: var(--green); }
+.av-medium { background: rgba(255,181,71,0.15); color: var(--amber); }
+.av-high { background: rgba(255,77,77,0.15); color: var(--red); }
+.token-name { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+.token-addr { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
+.risk-pill { display: flex; align-items: center; gap: 7px; padding: 7px 16px; border-radius: 99px; font-size: 13px; font-weight: 600; }
+.risk-low { background: rgba(0,210,122,0.12); color: var(--green); border: 1px solid rgba(0,210,122,0.3); }
+.risk-medium { background: rgba(255,181,71,0.12); color: var(--amber); border: 1px solid rgba(255,181,71,0.3); }
+.risk-high { background: rgba(255,77,77,0.12); color: var(--red); border: 1px solid rgba(255,77,77,0.3); }
+.rdot { width: 7px; height: 7px; border-radius: 50%; }
+.rdot-low { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.rdot-medium { background: var(--amber); }
+.rdot-high { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+.result-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
+.r-metric { background: var(--bg2); padding: 16px 20px; }
+.r-metric-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.r-metric-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+.v-green { color: var(--green); } .v-amber { color: var(--amber); } .v-red { color: var(--red); } .v-dim { color: var(--text-dim); }
+
+.score-wrap { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+.score-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-family: var(--font-mono); }
+.score-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+
+.checks-wrap { padding: 20px 28px; display: flex; flex-direction: column; gap: 8px; }
+.chk { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); }
+.chk-safe { background: rgba(0,210,122,0.06); border: 1px solid rgba(0,210,122,0.15); }
+.chk-warn { background: rgba(255,181,71,0.06); border: 1px solid rgba(255,181,71,0.15); }
+.chk-danger { background: rgba(255,77,77,0.06); border: 1px solid rgba(255,77,77,0.15); }
+.chk-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
+.chk-text { font-size: 13px; color: var(--text-dim); flex: 1; }
+.chk-tag { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 99px; flex-shrink: 0; font-family: var(--font-mono); }
+.tag-safe { background: rgba(0,210,122,0.15); color: var(--green); }
+.tag-warn { background: rgba(255,181,71,0.15); color: var(--amber); }
+.tag-danger { background: rgba(255,77,77,0.15); color: var(--red); }
+
+/* WALLET CTA */
+.wallet-cta {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 80px auto 0;
+  padding: 0 48px;
+  animation: fadeUp 0.6s ease 0.5s both;
+}
+.cta-card {
+  background: var(--bg2);
+  border: 1px solid var(--border-green);
+  border-radius: var(--radius);
+  padding: 36px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+.cta-card h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.cta-card p { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+.cta-connect { background: var(--green); color: #000; border: none; padding: 14px 32px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; width: 100%; transition: all 0.2s; }
+.cta-connect:hover { box-shadow: 0 0 30px var(--green-glow); transform: translateY(-1px); }
+.cta-sub { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+
+/* FEATURES */
+.features {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 100px auto 0;
+  padding: 0 48px;
+}
+.features-label { font-size: 11px; font-weight: 600; color: var(--green); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; font-family: var(--font-mono); }
+.features-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; margin-bottom: 48px; line-height: 1.1; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.feature-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+.feature-card:hover { border-color: var(--border-green); }
+.feature-icon { font-size: 24px; margin-bottom: 16px; }
+.feature-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.feature-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* PRICING */
+.pricing {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 100px auto 0;
+  padding: 0 48px 100px;
+}
+.pricing-label { font-size: 11px; font-weight: 600; color: var(--green); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; font-family: var(--font-mono); }
+.pricing-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; margin-bottom: 48px; line-height: 1.1; }
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.plan {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.plan.featured {
+  border-color: var(--border-green);
+  position: relative;
+  overflow: hidden;
+}
+.plan.featured::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+}
+.plan-badge { font-size: 11px; font-weight: 600; background: var(--green-dim); color: var(--green); padding: 3px 10px; border-radius: 99px; display: inline-block; margin-bottom: 16px; border: 1px solid var(--border-green); font-family: var(--font-mono); }
+.plan-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.plan-price { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+.plan-price span { font-size: 16px; font-weight: 400; color: var(--text-muted); font-family: var(--font-body); }
+.plan-crypto { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; font-family: var(--font-mono); }
+.plan-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.plan-features li { font-size: 13px; color: var(--text-dim); display: flex; align-items: center; gap: 10px; }
+.plan-features li::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--green); flex-shrink: 0; opacity: 0.8; }
+.plan-btn { width: 100%; padding: 12px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text); transition: all 0.15s; }
+.plan-btn:hover { border-color: var(--border-green); color: var(--green); }
+.plan-btn.primary { background: var(--green); color: #000; border: none; }
+.plan-btn.primary:hover { box-shadow: 0 0 20px var(--green-glow); transform: translateY(-1px); }
+
+.crypto-note { display: flex; align-items: center; gap: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 18px; margin-top: 16px; flex-wrap: wrap; }
+.crypto-note span { font-size: 12px; color: var(--text-muted); }
+.cpill { font-size: 11px; font-weight: 600; background: var(--green-dim); color: var(--green); padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border-green); font-family: var(--font-mono); }
+
+@media (max-width: 768px) {
+  nav { padding: 16px 20px; }
+  .hero { padding: 120px 20px 60px; }
+  .hero h1 { font-size: 38px; }
+  .stats { grid-template-columns: 1fr; max-width: 300px; }
+  .features-grid, .plans { grid-template-columns: 1fr; }
+  .features, .pricing, .wallet-cta, .result-wrap { padding-left: 20px; padding-right: 20px; }
+  .result-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+
+
+/* LANGUAGE SELECTOR */
+.lang-wrap { position: relative; z-index: 999; }
+.lang-current {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 13px; font-family: var(--font-mono);
+  padding: 7px 12px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.lang-current:hover { border-color: var(--border-green); color: var(--green); }
+.lang-menu {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: #0F1115; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm); overflow: hidden; min-width: 150px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  opacity: 0; pointer-events: none; transform: translateY(-6px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.lang-menu.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+.lang-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px; font-size: 13px; color: #9CA3AF;
+  cursor: pointer; transition: background 0.1s; border: none;
+  background: none; width: 100%; text-align: left; font-family: var(--font-body);
+}
+.lang-item:hover { background: rgba(0,210,122,0.1); color: #00D27A; }
+.lang-item.selected { color: #00D27A; }
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-card { animation: fadeUp 0.4s ease; }
+.scan-btn { position: relative; overflow: hidden; }
+.scan-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+}
+.scan-btn:not(:disabled):hover::after {
+  animation: shimmer 0.6s ease;
+}
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+.chain-btn { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.chain-btn.active { transform: scale(1.05); }
+.feature-card { transition: all 0.2s ease; }
+.feature-card:hover { transform: translateY(-3px); }
+.plan { transition: all 0.2s ease; }
+.plan:hover { transform: translateY(-3px); }
+.plan.featured:hover { transform: translateY(-3px); }
+.stat { transition: all 0.2s ease; }
+</style>
+</head>
+<body>
+<div class="glow-orb"></div>
+
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" stroke="#000" stroke-width="1.5" fill="none"/>
+        <path d="M9 6L11.5 7.5V10.5L9 12L6.5 10.5V7.5L9 6Z" fill="#000"/>
+      </svg>
+    </div>
+    <span class="logo-name">the<span>safechain</span></span>
+  </a>
+  <div class="nav-right">
+    <a href="#pricing" class="nav-link" data-i18n="nav_pricing">Pricing</a>
+    <div class="lang-wrap" id="lang-wrap">
+      <div class="lang-current" id="lang-current">🇺🇸 EN ▾</div>
+      <div class="lang-menu" id="lang-menu">
+        <button class="lang-item selected" data-lang="en">🇺🇸 English</button>
+        <button class="lang-item" data-lang="es">🇪🇸 Español</button>
+        <button class="lang-item" data-lang="zh">🇨🇳 中文</button>
+        <button class="lang-item" data-lang="ja">🇯🇵 日本語</button>
+      </div>
+    </div>
+    <div class="wallet-pill" id="wallet-pill">
+      <div class="wallet-dot"></div>
+      <span id="wallet-addr-nav">0x...</span>
+    </div>
+    <button class="connect-btn" id="connect-btn" onclick="connectWallet()">Connect wallet</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Real-time on-chain security analysis
+  </div>
+  <h1>
+    Know what's<br>
+    <span class="accent">safe</span> before you<br>
+    <span class="dim">risk anything</span>
+  </h1>
+  <p class="hero-sub">Paste any contract address and get a full risk report in seconds. Detect rugpulls, honeypots, and dangerous wallets — instantly.</p>
+
+  <div class="search-wrap">
+    <div class="chain-select">
+      <button class="chain-btn active" data-chain="ethereum">ETH</button>
+      <button class="chain-btn" data-chain="bsc">BSC</button>
+      <button class="chain-btn" data-chain="polygon">MATIC</button>
+      <button class="chain-btn" data-chain="arbitrum">ARB</button>
+      <button class="chain-btn" data-chain="base">BASE</button>
+      <button class="chain-btn" data-chain="avalanche">AVAX</button>
+    </div>
+    <div class="search-box">
+      <input type="text" id="addr-input" placeholder="Paste a contract address..." autocomplete="off" spellcheck="false"/>
+      <button class="scan-btn" id="scan-btn" onclick="scanManual()">Scan now</button>
+    </div>
+    <div class="hint">Free · No signup · Results in seconds</div>
+    <div class="error-box" id="error-box"></div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">2.4M+</div><div class="stat-label">Contracts analyzed</div></div>
+  <div class="stat"><div class="stat-val">$0</div><div class="stat-label">Lost to rugpulls</div></div>
+  <div class="stat"><div class="stat-val">6 chains</div><div class="stat-label">Supported networks</div></div>
+</div>
+
+<div class="loading-wrap" id="loading-wrap">
+  <div class="spinner"></div>
+  <p id="loading-text">Scanning contract on-chain...</p>
+  <div class="progress-text" id="progress-text"></div>
+</div>
+
+<div class="result-wrap" id="result-wrap">
+  <div class="result-card" id="result-card"></div>
+</div>
+
+<div class="wallet-cta" id="wallet-cta">
+  <div class="cta-card">
+    <h3>Scan your entire wallet instantly</h3>
+    <p>Connect and TheSafeChain automatically checks every token you hold — flagging dangerous ones before you lose money.</p>
+    <button class="cta-connect" onclick="connectWallet()">Connect wallet — it's free</button>
+    <div class="cta-sub">Read-only · We never request transaction permissions</div>
+  </div>
+</div>
+
+<div class="features">
+  <div class="features-label">Why TheSafeChain</div>
+  <div class="features-title">Everything you need<br>to stay safe on-chain</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Honeypot detection</div>
+      <div class="feature-desc">Know instantly if a token will trap your funds and prevent you from selling.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Deployer history</div>
+      <div class="feature-desc">See if the contract creator has a history of rugpulls across any chain.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Real-time analysis</div>
+      <div class="feature-desc">On-chain data fetched live — no cached results, no outdated information.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👛</div>
+      <div class="feature-title">Wallet scanner</div>
+      <div class="feature-desc">Connect your wallet and scan every token you hold in one click.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-title">Multi-chain</div>
+      <div class="feature-desc">Ethereum, BSC, Polygon, Arbitrum, Base, Avalanche — all supported.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <div class="feature-title">No KYC ever</div>
+      <div class="feature-desc">Connect with your wallet. No email, no password, no personal data.</div>
+    </div>
+  </div>
+</div>
+
+<div class="pricing" id="pricing">
+  <div class="pricing-label">Pricing</div>
+  <div class="pricing-title">Pay with crypto.<br>No banks. No KYC.</div>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0 <span>/ month</span></div>
+      <div class="plan-desc">For users who want to explore.</div>
+      <ul class="plan-features">
+        <li>5 scans per day</li>
+        <li>Wallet portfolio scan</li>
+        <li>Basic risk detection</li>
+        <li>Main networks</li>
+      </ul>
+      <button class="plan-btn" onclick="connectWallet()">Connect wallet</button>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$12 <span>/ month</span></div>
+      <div class="plan-crypto">Pay with USDC · ETH · BNB</div>
+      <div class="plan-desc">For active investors who can't afford surprises.</div>
+      <ul class="plan-features">
+        <li>Unlimited scans</li>
+        <li>Full deployer history</li>
+        <li>Real-time alerts</li>
+        <li>Wallet permission scanner</li>
+        <li>All EVM networks</li>
+        <li>API access</li>
+      </ul>
+      <button class="plan-btn primary" onclick="window.location.href='/upgrade.html'">Upgrade to Pro</button>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Team</div>
+      <div class="plan-price">$39 <span>/ month</span></div>
+      <div class="plan-crypto">Pay with USDC · ETH · BNB</div>
+      <div class="plan-desc">For DAOs, funds and groups.</div>
+      <ul class="plan-features">
+        <li>Everything in Pro</li>
+        <li>Up to 5 users</li>
+        <li>Priority API access</li>
+        <li>Exportable reports</li>
+        <li>Dedicated support</li>
+      </ul>
+      <button class="plan-btn">Contact us</button>
+    </div>
+  </div>
+  <div class="crypto-note">
+    <span>Accepted:</span>
+    <span class="cpill">USDC</span>
+    <span class="cpill">USDT</span>
+    <span class="cpill">ETH</span>
+    <span class="cpill">BNB</span>
+    <span style="margin-left:auto;font-size:12px;color:var(--text-muted);">No KYC · No banks · Instant access</span>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+
+<footer style="position:relative;z-index:1;border-top:1px solid rgba(255,255,255,0.07);padding:48px;max-width:900px;margin:0 auto;">
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:48px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:32px;height:32px;background:#00D27A;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(0,210,122,0.3);">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" stroke="#000" stroke-width="1.5" fill="none"/><path d="M9 6L11.5 7.5V10.5L9 12L6.5 10.5V7.5L9 6Z" fill="#000"/></svg>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#F0F2F5;">chain<span style="color:#00D27A;">guard</span></span>
+      </div>
+      <p style="font-size:13px;color:#6B7280;line-height:1.7;max-width:280px;">The most complete crypto security scanner. Protect your investments before it's too late.</p>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <a href="https://twitter.com/thesafechainxyz" target="_blank" style="width:36px;height:36px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(0,210,122,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">𝕏</a>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;font-family:'DM Mono',monospace;">Product</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="/" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Contract scanner</a>
+        <a href="/dashboard.html" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Wallet dashboard</a>
+        <a href="/#pricing" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Pricing</a>
+        <a href="/upgrade.html" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Upgrade to Pro</a>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;font-family:'DM Mono',monospace;">Legal</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="/terms.html" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Terms of service</a>
+        <a href="/privacy.html" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Privacy policy</a>
+        <a href="/disclaimer.html" style="font-size:13px;color:#9CA3AF;text-decoration:none;" onmouseover="this.style.color='#00D27A'" onmouseout="this.style.color='#9CA3AF'">Disclaimer</a>
+      </div>
+    </div>
+  </div>
+  <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div style="font-size:12px;color:#6B7280;font-family:'DM Mono',monospace;">© 2026 TheSafeChain. All rights reserved.</div>
+    <div style="font-size:12px;color:#6B7280;">Not financial advice. Always DYOR.</div>
+  </div>
+</footer>
+</body>
+</html>
