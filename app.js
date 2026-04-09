@@ -1,4 +1,4 @@
-const BACKEND = 'http://localhost:5001';
+const BACKEND = 'https://crypto-security-scanner-production.up.railway.app';
 let selectedChain = 'ethereum';
 
 document.querySelectorAll('.chain-btn').forEach(btn => {
