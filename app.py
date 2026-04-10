@@ -354,6 +354,8 @@ def scan_info():
     wallet = request.args.get("wallet", "").strip().lower()
     if not wallet:
         return jsonify({"error": "Wallet address required"}), 400
+    if request.args.get("increment") == "1":
+        increment_scan(wallet)
     return jsonify(get_scan_info(wallet))
 
 

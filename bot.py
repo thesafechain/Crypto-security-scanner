@@ -133,8 +133,26 @@ Your crypto security scanner on Telegram.
         if not address.startswith("0x") or len(address) < 40:
             send(chat_id, "❌ Invalid address. Make sure it starts with `0x`.")
             return
+        # Check rate limit using telegram user_id
+        user_id = str(msg.get("from", {}).get("id", chat_id))
+        tg_wallet = f"tg_{user_id}"
+        try:
+            info_res = requests.get(f"{BACKEND}/api/scan-info", params={"wallet": tg_wallet}, timeout=5)
+            info = info_res.json()
+            scans_left = info.get("scans_left", 0)
+            is_pro = info.get("is_pro", False)
+            if not is_pro and scans_left <= 0:
+                send(chat_id, "⚠️ *Daily limit reached* — you've used your 5 free scans for today.\n\nUpgrade to Pro for unlimited scans:\n🌐 [thesafechain.xyz/upgrade.html](https://www.thesafechain.xyz/upgrade.html)")
+                return
+        except:
+            pass
         send(chat_id, f"🔍 Analyzing `{address[:8]}...` Please wait...")
         handle_scan(chat_id, address, chain)
+        # Increment scan count
+        try:
+            requests.get(f"{BACKEND}/api/scan-info", params={"wallet": tg_wallet, "increment": "1"}, timeout=5)
+        except:
+            pass
 
     elif text.startswith("/wallet"):
         parts = text.split()
