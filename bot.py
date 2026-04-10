@@ -109,19 +109,94 @@ Your crypto security scanner on Telegram.
 *Commands:*
 🔍 `/scan 0x...` — Scan any contract
 👛 `/wallet 0x...` — Scan your wallet
+⚡ `/activate 0x...` — Activate Pro after paying
 ℹ️ `/help` — Show this message
 
 *Example:*
 `/scan 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE`
+
+Free plan: 5 scans/day
+Pro: Unlimited — [upgrade here](https://www.thesafechain.xyz/upgrade.html)
 
 🌐 [thesafechain.xyz](https://www.thesafechain.xyz)""")
 
     elif text.startswith("/help"):
         send(chat_id, """*TheSafeChain Commands:*
 
-🔍 `/scan <address>` — Full security analysis of any contract
-👛 `/wallet <address>` — Scan all tokens in a wallet
-🌐 Visit [thesafechain.xyz](https://www.thesafechain.xyz) for full reports""")
+🔍 `/scan <address>` — Full security analysis
+👛 `/wallet <address>` — Scan wallet tokens
+⚡ `/activate <wallet>` — Activate Pro after paying
+ℹ️ `/status` — Check your scan usage
+
+*Free plan:* 5 scans/day
+*Pro:* Unlimited — [upgrade here](https://www.thesafechain.xyz/upgrade.html)
+
+🌐 [thesafechain.xyz](https://www.thesafechain.xyz)""")
+
+    elif text.startswith("/status"):
+        user_id = str(msg.get("from", {}).get("id", chat_id))
+        tg_wallet = f"tg_{user_id}"
+        try:
+            info_res = requests.get(f"{BACKEND}/api/scan-info", params={"wallet": tg_wallet}, timeout=5)
+            info = info_res.json()
+            is_pro = info.get("is_pro", False)
+            scans_used = info.get("scans_today", 0)
+            scans_left = info.get("scans_left", 5)
+            if is_pro:
+                send(chat_id, "⚡ *Pro plan active* — unlimited scans\!")
+            else:
+                send(chat_id, f"📊 *Your usage today:*\n\nScans used: {scans_used}/5\nScans left: {scans_left}\n\n[Upgrade to Pro](https://www.thesafechain.xyz/upgrade.html) for unlimited scans")
+        except:
+            send(chat_id, "Could not fetch status. Try again.")
+
+    elif text.startswith("/activate"):
+        parts = text.split()
+        if len(parts) < 2:
+            send(chat_id, """To activate Pro:
+
+*Step 1* — Pay 12 USDC at:
+[thesafechain.xyz/upgrade.html](https://www.thesafechain.xyz/upgrade.html)
+
+*Step 2* — Come back and type:
+`/activate 0x...yourwalletaddress`""")
+            return
+
+        wallet = parts[1].strip().lower()
+        if not wallet.startswith("0x") or len(wallet) < 40:
+            send(chat_id, "❌ Invalid wallet address. Make sure it starts with `0x`.")
+            return
+
+        send(chat_id, "🔍 Verifying your payment on-chain...")
+        try:
+            res = requests.get(f"{BACKEND}/api/check-payment", params={"wallet": wallet}, timeout=15)
+            data = res.json()
+            if data.get("is_pro"):
+                # Link telegram ID to this wallet
+                user_id = str(msg.get("from", {}).get("id", chat_id))
+                tg_wallet = f"tg_{user_id}"
+                # Activate pro for telegram user
+                requests.get(f"{BACKEND}/api/pro-status", params={"wallet": tg_wallet, "activate": "1"}, timeout=5)
+                send(chat_id, """✅ *Pro plan activated\!*
+
+Welcome to TheSafeChain Pro 🚀
+
+You now have:
+• Unlimited contract scans
+• Wallet portfolio analysis
+• All EVM networks
+
+Start scanning\! `/scan 0x...`""")
+            else:
+                send(chat_id, """❌ *Payment not found yet.*
+
+Make sure you:
+1\. Paid from the wallet you entered
+2\. Waited 1\-2 minutes for confirmation
+
+Try again in a moment or visit:
+[thesafechain.xyz/upgrade.html](https://www.thesafechain.xyz/upgrade.html)""")
+        except:
+            send(chat_id, "❌ Could not verify payment. Try again in a moment.")
 
     elif text.startswith("/scan"):
         parts = text.split()
@@ -142,7 +217,17 @@ Your crypto security scanner on Telegram.
             scans_left = info.get("scans_left", 0)
             is_pro = info.get("is_pro", False)
             if not is_pro and scans_left <= 0:
-                send(chat_id, "⚠️ *Daily limit reached* — you've used your 5 free scans for today.\n\nUpgrade to Pro for unlimited scans:\n🌐 [thesafechain.xyz/upgrade.html](https://www.thesafechain.xyz/upgrade.html)")
+                send(chat_id, """⚠️ *Daily limit reached* — 5 free scans used today.
+
+To get unlimited scans:
+
+*Step 1* — Pay 12 USDC at:
+[thesafechain.xyz/upgrade.html](https://www.thesafechain.xyz/upgrade.html)
+
+*Step 2* — Come back here and type:
+`/activate 0x...yourwalletaddress`
+
+*Step 3* — Done\! Unlimited scans activated 🚀""")
                 return
         except:
             pass
