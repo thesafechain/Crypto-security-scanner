@@ -184,7 +184,7 @@ def parse_contract(address, chain, d):
     if renounced:
         checks.append({"status": "safe", "text": "Ownership has been renounced", "tag": "Safe"})
     else:
-        score -= 10
+        score -= 5
         checks.append({"status": "warn", "text": "Owner can still modify contract functions", "tag": "Caution"})
 
     # Mint function
@@ -244,14 +244,20 @@ def parse_contract(address, chain, d):
     except:
         pass
 
-    # Whale concentration
+    # Whale concentration — exclude known burn addresses
+    BURN_ADDRESSES = [
+        "0x0000000000000000000000000000000000000000",
+        "0x000000000000000000000000000000000000dead",
+        "0xdead000000000000000042069420694206942069",
+    ]
     holders = d.get("holders", [])
     if holders:
-        top3 = sum(float(h.get("percent", 0)) for h in holders[:3]) * 100
-        if top3 > 50:
+        real_holders = [h for h in holders if h.get("address", "").lower() not in BURN_ADDRESSES]
+        top3 = sum(float(h.get("percent", 0)) for h in real_holders[:3]) * 100
+        if top3 > 60:
             score -= 15
             checks.append({"status": "danger", "text": f"Top 3 wallets control {top3:.1f}% of supply — extreme concentration risk", "tag": "Danger"})
-        elif top3 > 30:
+        elif top3 > 35:
             score -= 8
             checks.append({"status": "warn", "text": f"Top 3 wallets hold {top3:.1f}% of supply", "tag": "Caution"})
         else:
@@ -281,15 +287,15 @@ def parse_contract(address, chain, d):
         if locked:
             checks.append({"status": "safe", "text": "Liquidity is locked — reduces rugpull risk", "tag": "Safe"})
         else:
-            score -= 10
+            score -= 5
             checks.append({"status": "warn", "text": "Liquidity is NOT locked — owner can remove it anytime", "tag": "Caution"})
 
     score = max(0, min(100, score))
 
-    if score >= 75:
+    if score >= 70:
         risk = "Low risk"
         risk_level = "low"
-    elif score >= 45:
+    elif score >= 40:
         risk = "Medium risk"
         risk_level = "medium"
     else:
