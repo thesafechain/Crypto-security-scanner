@@ -38,7 +38,7 @@ def handle_scan(chat_id, address, chain="ethereum"):
         name = d.get("token_name", "Unknown")
         symbol = d.get("token_symbol", "???")
         is_honeypot = d.get("is_honeypot", False)
-        holders = d.get("holders_count", "?")
+        holders = d.get("holder_count", d.get("holders_count", "?"))
 
         if score >= 70:
             emoji = "🟢"
