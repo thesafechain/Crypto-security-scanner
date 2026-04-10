@@ -364,9 +364,13 @@ def health():
 
 
 
-# Etherscan API V2 — una sola key para todas las cadenas
+# Etherscan API V2 — una sola key para ETH, BSC, Polygon, Arbitrum, Base
 ETHERSCAN_KEY = "NJ1366ZNEFAUZ57VTCQFTIBYS2GTA1GIRV"
 ETHERSCAN_V2 = "https://api.etherscan.io/v2/api"
+
+# Snowtrace para Avalanche
+SNOWTRACE_KEY = "rs_44d605d39c6192eb4d4954c0"
+SNOWTRACE_URL = "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api"
 
 CHAIN_IDS = {
     "ethereum": 1,
@@ -374,7 +378,6 @@ CHAIN_IDS = {
     "polygon": 137,
     "arbitrum": 42161,
     "base": 8453,
-    "avalanche": 43114,
 }
 
 @app.route("/api/wallet/<address>", methods=["GET"])
@@ -386,21 +389,33 @@ def wallet_tokens(address):
     for chain in chains:
         chain = chain.strip().lower()
         chain_id = CHAIN_IDS.get(chain)
-        if not chain_id:
+        if not chain_id and chain != "avalanche":
             continue
 
         try:
-            params = {
-                "chainid": chain_id,
-                "module": "account",
-                "action": "tokentx",
-                "address": address,
-                "startblock": 0,
-                "endblock": 99999999,
-                "sort": "desc",
-                "apikey": ETHERSCAN_KEY
-            }
-            res = requests.get(ETHERSCAN_V2, params=params, timeout=10)
+            if chain == "avalanche":
+                params = {
+                    "module": "account",
+                    "action": "tokentx",
+                    "address": address,
+                    "startblock": 0,
+                    "endblock": 99999999,
+                    "sort": "desc",
+                    "apikey": SNOWTRACE_KEY
+                }
+                res = requests.get(SNOWTRACE_URL, params=params, timeout=10)
+            else:
+                params = {
+                    "chainid": chain_id,
+                    "module": "account",
+                    "action": "tokentx",
+                    "address": address,
+                    "startblock": 0,
+                    "endblock": 99999999,
+                    "sort": "desc",
+                    "apikey": ETHERSCAN_KEY
+                }
+                res = requests.get(ETHERSCAN_V2, params=params, timeout=10)
             data = res.json()
 
             if data.get("status") != "1":
