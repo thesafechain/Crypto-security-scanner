@@ -1,0 +1,40 @@
+<svg width="680" height="680" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="hex-clip">
+    <polygon points="340,40 620,195 620,485 340,640 60,485 60,195"/>
+  </clipPath>
+</defs>
+
+<circle cx="340" cy="340" r="340" fill="#050608"/>
+<polygon points="340,40 620,195 620,485 340,640 60,485 60,195" fill="#0C1A14"/>
+<polygon points="340,40 620,195 620,485 340,640 60,485 60,195" fill="none" stroke="#00D27A" stroke-width="6"/>
+<polygon points="340,100 565,228 565,452 340,580 115,452 115,228" fill="#081610"/>
+<polygon points="340,100 565,228 565,452 340,580 115,452 115,228" fill="none" stroke="#00D27A" stroke-width="2" opacity="0.5"/>
+
+<path d="M340 160 L468 222 L468 370 Q468 462 340 506 Q212 462 212 370 L212 222 Z" fill="#00D27A"/>
+<path d="M340 178 L452 235 L452 368 Q452 448 340 488 Q228 448 228 368 L228 235 Z" fill="#009958"/>
+<path d="M340 198 L436 248 L436 366 Q436 434 340 470 Q244 434 244 366 L244 248 Z" fill="#072e1a"/>
+<rect x="290" y="215" width="100" height="8" rx="4" fill="#00D27A" opacity="0.9"/>
+
+<rect x="120" y="302" width="80" height="36" rx="18" fill="#00D27A"/>
+<rect x="120" y="302" width="80" height="36" rx="18" fill="none" stroke="#009958" stroke-width="1.5"/>
+<rect x="148" y="286" width="80" height="36" rx="18" fill="#00D27A"/>
+<rect x="148" y="286" width="80" height="36" rx="18" fill="none" stroke="#00ff99" stroke-width="1" opacity="0.4"/>
+
+<rect x="480" y="302" width="80" height="36" rx="18" fill="#00D27A"/>
+<rect x="480" y="302" width="80" height="36" rx="18" fill="none" stroke="#009958" stroke-width="1.5"/>
+<rect x="452" y="286" width="80" height="36" rx="18" fill="#00D27A"/>
+<rect x="452" y="286" width="80" height="36" rx="18" fill="none" stroke="#00ff99" stroke-width="1" opacity="0.4"/>
+
+<path d="M282 340 L326 390 L412 278" fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M282 340 L326 390 L412 278" fill="none" stroke="#00D27A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+
+<circle cx="340" cy="40" r="8" fill="#00D27A"/>
+<circle cx="620" cy="195" r="8" fill="#00D27A"/>
+<circle cx="620" cy="485" r="8" fill="#00D27A"/>
+<circle cx="340" cy="640" r="8" fill="#00D27A"/>
+<circle cx="60" cy="485" r="8" fill="#00D27A"/>
+<circle cx="60" cy="195" r="8" fill="#00D27A"/>
+<line x1="340" y1="40" x2="340" y2="75" stroke="#00D27A" stroke-width="3"/>
+<line x1="340" y1="605" x2="340" y2="640" stroke="#00D27A" stroke-width="3"/>
+</svg>
