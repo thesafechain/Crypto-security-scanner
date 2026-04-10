@@ -309,7 +309,7 @@ async function scanWallet(address) {
   document.getElementById('loading-text').textContent = 'Reading your wallet tokens...';
 
   try {
-    const res = await fetch(`${BACKEND}/api/wallet/${address}`);
+    const res = await fetch(`${BACKEND}/api/wallet/${address}?chains=ethereum,bsc,polygon,arbitrum,base`);
     const data = await res.json();
     const tokens = data.tokens || [];
 

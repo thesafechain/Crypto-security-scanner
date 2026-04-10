@@ -364,43 +364,67 @@ def health():
 
 
 
+# Etherscan API V2 — una sola key para todas las cadenas
+ETHERSCAN_KEY = "NJ1366ZNEFAUZ57VTCQFTIBYS2GTA1GIRV"
+ETHERSCAN_V2 = "https://api.etherscan.io/v2/api"
+
+CHAIN_IDS = {
+    "ethereum": 1,
+    "bsc": 56,
+    "polygon": 137,
+    "arbitrum": 42161,
+    "base": 8453,
+    "avalanche": 43114,
+}
+
 @app.route("/api/wallet/<address>", methods=["GET"])
 def wallet_tokens(address):
-    """Get all ERC-20 tokens held by a wallet using Etherscan API (free tier)"""
-    url = f"https://api.etherscan.io/api"
-    params = {
-        "module": "account",
-        "action": "tokentx",
-        "address": address,
-        "startblock": 0,
-        "endblock": 99999999,
-        "sort": "desc",
-        "apikey": "NJ1366ZNEFAUZ57VTCQFTIBYS2GTA1GIRV"
-    }
-    try:
-        res = requests.get(url, params=params, timeout=10)
-        data = res.json()
+    """Get all ERC-20 tokens held by a wallet across multiple chains"""
+    chains = request.args.get("chains", "ethereum,bsc,polygon").split(",")
+    all_tokens = []
 
-        if data.get("status") != "1":
-            return jsonify({"tokens": [], "message": "No token transactions found"})
+    for chain in chains:
+        chain = chain.strip().lower()
+        chain_id = CHAIN_IDS.get(chain)
+        if not chain_id:
+            continue
 
-        # Deduplicate by contract address
-        seen = {}
-        for tx in data.get("result", []):
-            addr = tx.get("contractAddress", "").lower()
-            if addr and addr not in seen:
-                seen[addr] = {
-                    "address": addr,
-                    "symbol": tx.get("tokenSymbol", "???"),
-                    "name": tx.get("tokenName", "Unknown"),
-                    "balance": None
-                }
+        try:
+            params = {
+                "chainid": chain_id,
+                "module": "account",
+                "action": "tokentx",
+                "address": address,
+                "startblock": 0,
+                "endblock": 99999999,
+                "sort": "desc",
+                "apikey": ETHERSCAN_KEY
+            }
+            res = requests.get(ETHERSCAN_V2, params=params, timeout=10)
+            data = res.json()
 
-        tokens = list(seen.values())[:15]  # Limit to 15 for free plan
-        return jsonify({"tokens": tokens, "total": len(tokens)})
+            if data.get("status") != "1":
+                continue
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            seen = {}
+            for tx in data.get("result", []):
+                addr = tx.get("contractAddress", "").lower()
+                if addr and addr not in seen:
+                    seen[addr] = {
+                        "address": addr,
+                        "symbol": tx.get("tokenSymbol", "???"),
+                        "name": tx.get("tokenName", "Unknown"),
+                        "chain": chain,
+                        "balance": None
+                    }
+
+            chain_tokens = list(seen.values())[:10]
+            all_tokens.extend(chain_tokens)
+
+        except Exception:
+            continue
+
+    return jsonify({"tokens": all_tokens[:30], "total": len(all_tokens)})
 
 
 @app.route("/api/check-payment", methods=["GET"])
