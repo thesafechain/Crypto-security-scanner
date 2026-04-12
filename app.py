@@ -392,8 +392,17 @@ def analyze_solana(address):
 
         if holders_data and supply > 0:
             real_holders = [h for h in holders_data if h.get("address") not in BURN_ADDRESSES_SOL]
+            top1_pct = int(real_holders[0].get("amount", 0)) / supply * 100 if real_holders else 0
             top3_pct = sum(int(h.get("amount", 0)) for h in real_holders[:3]) / supply * 100 if supply > 0 else 0
             holder_count = len(holders_data)
+
+            # Top 1 wallet check — very important for Solana memes
+            if top1_pct > 50:
+                score -= 30
+                checks.append({"status": "danger", "text": f"Top wallet controls {top1_pct:.1f}% of supply — extreme rug risk", "tag": "Danger"})
+            elif top1_pct > 20:
+                score -= 15
+                checks.append({"status": "warn", "text": f"Top wallet holds {top1_pct:.1f}% of supply — high concentration", "tag": "Caution"})
 
             if top3_pct > 60:
                 score -= 20
@@ -403,8 +412,20 @@ def analyze_solana(address):
                 checks.append({"status": "warn", "text": f"Top 3 wallets hold {top3_pct:.1f}% of supply", "tag": "Caution"})
             else:
                 checks.append({"status": "safe", "text": f"Supply well distributed — top 3 hold {top3_pct:.1f}%", "tag": "Safe"})
+
+            # Very few holders — new/risky token
+            if holder_count < 20:
+                score -= 25
+                checks.append({"status": "danger", "text": f"Only {holder_count} holders — extremely new or abandoned token", "tag": "Danger"})
+            elif holder_count < 100:
+                score -= 10
+                checks.append({"status": "warn", "text": f"Only {holder_count} holders — very few investors", "tag": "Caution"})
+            else:
+                checks.append({"status": "safe", "text": f"{holder_count} holders detected", "tag": "Safe"})
         else:
             holder_count = 0
+            score -= 20
+            checks.append({"status": "danger", "text": "No holder data available — could not verify distribution", "tag": "Danger"})
 
         # Is mutable (metadata can be changed)
         is_mutable = meta.get("mutable", True)
