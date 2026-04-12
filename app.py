@@ -324,6 +324,145 @@ def parse_contract(address, chain, d):
     }
 
 
+
+HELIUS_KEY = "b2dd494d-3671-46b3-9c93-af054dd71193"
+HELIUS_URL = "https://mainnet.helius-rpc.com/?api-key=" + HELIUS_KEY
+
+def analyze_solana(address):
+    """Analyze a Solana token using Helius API"""
+    score = 100
+    checks = []
+
+    try:
+        # Get token metadata
+        meta_res = requests.post(HELIUS_URL, json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "getAsset",
+            "params": {"id": address}
+        }, timeout=10)
+        meta = meta_res.json().get("result", {})
+
+        token_name = meta.get("content", {}).get("metadata", {}).get("name", "Unknown Token")
+        token_symbol = meta.get("content", {}).get("metadata", {}).get("symbol", "???")
+
+        # Check mint authority
+        mint_auth = meta.get("mint_extensions", {})
+        authorities = meta.get("authorities", [])
+        has_mint_auth = any(a.get("scopes", []) and "mint_tokens" in a.get("scopes", []) for a in authorities)
+
+        if has_mint_auth:
+            score -= 20
+            checks.append({"status": "danger", "text": "Mint authority active — creator can print unlimited tokens", "tag": "Danger"})
+        else:
+            checks.append({"status": "safe", "text": "Mint authority disabled — supply is fixed", "tag": "Safe"})
+
+        # Check freeze authority
+        has_freeze = any(a.get("scopes", []) and "freeze_account" in a.get("scopes", []) for a in authorities)
+        if has_freeze:
+            score -= 25
+            checks.append({"status": "danger", "text": "Freeze authority active — your wallet can be frozen", "tag": "Danger"})
+        else:
+            checks.append({"status": "safe", "text": "No freeze authority — your tokens cannot be frozen", "tag": "Safe"})
+
+        # Get token supply info
+        supply_res = requests.post(HELIUS_URL, json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "getTokenSupply",
+            "params": [address]
+        }, timeout=10)
+        supply_data = supply_res.json().get("result", {}).get("value", {})
+        supply = int(supply_data.get("amount", 0))
+        decimals = int(supply_data.get("decimals", 6))
+
+        # Get largest holders
+        holders_res = requests.post(HELIUS_URL, json={
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "getTokenLargestAccounts",
+            "params": [address]
+        }, timeout=10)
+        holders_data = holders_res.json().get("result", {}).get("value", [])
+
+        BURN_ADDRESSES_SOL = [
+            "1nc1nerator11111111111111111111111111111111",
+            "So11111111111111111111111111111111111111112"
+        ]
+
+        if holders_data and supply > 0:
+            real_holders = [h for h in holders_data if h.get("address") not in BURN_ADDRESSES_SOL]
+            top3_pct = sum(int(h.get("amount", 0)) for h in real_holders[:3]) / supply * 100 if supply > 0 else 0
+            holder_count = len(holders_data)
+
+            if top3_pct > 60:
+                score -= 20
+                checks.append({"status": "danger", "text": f"Top 3 wallets control {top3_pct:.1f}% of supply — extreme concentration", "tag": "Danger"})
+            elif top3_pct > 30:
+                score -= 10
+                checks.append({"status": "warn", "text": f"Top 3 wallets hold {top3_pct:.1f}% of supply", "tag": "Caution"})
+            else:
+                checks.append({"status": "safe", "text": f"Supply well distributed — top 3 hold {top3_pct:.1f}%", "tag": "Safe"})
+        else:
+            holder_count = 0
+
+        # Check if on Raydium (has liquidity)
+        # Use Helius enhanced API to check DAS
+        liq_res = requests.get(
+            f"https://api.helius.xyz/v0/token-metadata?api-key={HELIUS_KEY}",
+            json={"mintAccounts": [address]},
+            timeout=10
+        )
+
+        # Basic liquidity check via Jupiter
+        jup_res = requests.get(f"https://price.jup.ag/v6/price?ids={address}", timeout=5)
+        jup_data = jup_res.json().get("data", {})
+        has_price = address in jup_data
+
+        if has_price:
+            price = jup_data[address].get("price", 0)
+            checks.append({"status": "safe", "text": f"Token tradeable on Jupiter — price: ${price:.8f}", "tag": "Safe"})
+        else:
+            score -= 15
+            checks.append({"status": "warn", "text": "Token not found on Jupiter — may have no liquidity", "tag": "Caution"})
+
+        # Is mutable (metadata can be changed)
+        is_mutable = meta.get("mutable", True)
+        if is_mutable:
+            score -= 10
+            checks.append({"status": "warn", "text": "Metadata is mutable — name/image can be changed by creator", "tag": "Caution"})
+        else:
+            checks.append({"status": "safe", "text": "Metadata is immutable — cannot be changed", "tag": "Safe"})
+
+        score = max(0, min(100, score))
+
+        if score >= 70:
+            risk = "Low risk"
+            risk_level = "low"
+        elif score >= 40:
+            risk = "Medium risk"
+            risk_level = "medium"
+        else:
+            risk = "High risk"
+            risk_level = "high"
+
+        return {
+            "address": address,
+            "token_name": token_name,
+            "token_symbol": token_symbol,
+            "score": score,
+            "risk": risk,
+            "risk_level": risk_level,
+            "is_honeypot": has_freeze,
+            "is_open_source": not is_mutable,
+            "holder_count": holder_count,
+            "checks": checks,
+            "chain": "solana"
+        }
+
+    except Exception as e:
+        return {"error": f"Could not analyze Solana token: {str(e)}"}
+
 @app.route("/api/analyze", methods=["GET"])
 def analyze():
     address = request.args.get("address", "").strip()
