@@ -332,6 +332,12 @@ def analyze_solana(address):
     """Analyze a Solana token using Helius API"""
     score = 100
     checks = []
+    is_pump_fun = address.endswith("pump")
+
+    # Pump.fun tokens start with a penalty — they are unverified by default
+    if is_pump_fun:
+        score -= 20
+        checks.append({"status": "warn", "text": "Token launched on Pump.fun — high risk meme coin", "tag": "Caution"})
 
     try:
         # Get token metadata
@@ -415,13 +421,16 @@ def analyze_solana(address):
 
             # Very few holders — new/risky token
             if holder_count < 20:
-                score -= 25
+                score -= 30
                 checks.append({"status": "danger", "text": f"Only {holder_count} holders — extremely new or abandoned token", "tag": "Danger"})
             elif holder_count < 100:
-                score -= 10
+                score -= 15
                 checks.append({"status": "warn", "text": f"Only {holder_count} holders — very few investors", "tag": "Caution"})
+            elif holder_count < 500:
+                score -= 5
+                checks.append({"status": "warn", "text": f"{holder_count} holders — still early stage", "tag": "Caution"})
             else:
-                checks.append({"status": "safe", "text": f"{holder_count} holders detected", "tag": "Safe"})
+                checks.append({"status": "safe", "text": f"{holder_count:,} holders — good distribution", "tag": "Safe"})
         else:
             holder_count = 0
             score -= 20
@@ -430,8 +439,8 @@ def analyze_solana(address):
         # Is mutable (metadata can be changed)
         is_mutable = meta.get("mutable", True)
         if is_mutable:
-            score -= 10
-            checks.append({"status": "warn", "text": "Metadata is mutable — name/image can be changed by creator", "tag": "Caution"})
+            score -= 20
+            checks.append({"status": "danger", "text": "Metadata is mutable — creator can change name, symbol or image anytime", "tag": "Danger"})
         else:
             checks.append({"status": "safe", "text": "Metadata is immutable — cannot be changed", "tag": "Safe"})
 
@@ -451,7 +460,8 @@ def analyze_solana(address):
             if has_liquidity:
                 checks.append({"status": "safe", "text": "Token has on-chain activity detected", "tag": "Safe"})
             else:
-                checks.append({"status": "warn", "text": "No significant on-chain activity found", "tag": "Caution"})
+                score -= 15
+                checks.append({"status": "danger", "text": "No on-chain activity — token may be dead or abandoned", "tag": "Danger"})
         except:
             checks.append({"status": "warn", "text": "Could not verify liquidity — check manually", "tag": "Caution"})
 
