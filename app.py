@@ -472,8 +472,12 @@ def analyze():
     if not address or len(address) < 10:
         return jsonify({"error": "Please provide a valid contract address"}), 400
 
+    if chain == "solana":
+        result = analyze_solana(address)
+        return jsonify(result)
+
     if chain not in CHAIN_IDS:
-        return jsonify({"error": f"Unsupported chain. Use: {', '.join(CHAIN_IDS.keys())}"}), 400
+        return jsonify({"error": f"Unsupported chain. Use: {', '.join(CHAIN_IDS.keys())}, solana"}), 400
 
     # Rate limit check (only if wallet is provided)
     if wallet:
