@@ -37,6 +37,8 @@ scan_counts = {}
 FREE_LIMIT = 5
 
 def check_rate_limit(wallet):
+    if wallet.lower() == OWNER_WALLET:
+        return True
     wallet = wallet.lower()
     today = date.today()
     if wallet not in scan_counts or scan_counts[wallet]['date'] != today:
