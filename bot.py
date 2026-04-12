@@ -214,7 +214,7 @@ Try again in a moment or visit:
         try:
             info_res = requests.get(f"{BACKEND}/api/scan-info", params={"wallet": tg_wallet}, timeout=5)
             info = info_res.json()
-            scans_left = info.get("scans_left", 0)
+            scans_left = info.get("scans_left", 5)
             is_pro = info.get("is_pro", False)
             if not is_pro and scans_left <= 0:
                 send(chat_id, """⚠️ *Daily limit reached* — 5 free scans used today.
@@ -230,7 +230,7 @@ To get unlimited scans:
 *Step 3* — Done\! Unlimited scans activated 🚀""")
                 return
         except:
-            pass
+            scans_left = 5
         send(chat_id, f"🔍 Analyzing `{address[:8]}...` Please wait...")
         handle_scan(chat_id, address, chain)
         # Increment scan count
