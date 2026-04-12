@@ -406,26 +406,6 @@ def analyze_solana(address):
         else:
             holder_count = 0
 
-        # Check if on Raydium (has liquidity)
-        # Use Helius enhanced API to check DAS
-        liq_res = requests.get(
-            f"https://api.helius.xyz/v0/token-metadata?api-key={HELIUS_KEY}",
-            json={"mintAccounts": [address]},
-            timeout=10
-        )
-
-        # Basic liquidity check via Jupiter
-        jup_res = requests.get(f"https://price.jup.ag/v6/price?ids={address}", timeout=5)
-        jup_data = jup_res.json().get("data", {})
-        has_price = address in jup_data
-
-        if has_price:
-            price = jup_data[address].get("price", 0)
-            checks.append({"status": "safe", "text": f"Token tradeable on Jupiter — price: ${price:.8f}", "tag": "Safe"})
-        else:
-            score -= 15
-            checks.append({"status": "warn", "text": "Token not found on Jupiter — may have no liquidity", "tag": "Caution"})
-
         # Is mutable (metadata can be changed)
         is_mutable = meta.get("mutable", True)
         if is_mutable:
@@ -433,6 +413,26 @@ def analyze_solana(address):
             checks.append({"status": "warn", "text": "Metadata is mutable — name/image can be changed by creator", "tag": "Caution"})
         else:
             checks.append({"status": "safe", "text": "Metadata is immutable — cannot be changed", "tag": "Safe"})
+
+        # Check liquidity via Helius DAS
+        try:
+            das_res = requests.post(HELIUS_URL, json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "searchAssets",
+                "params": {
+                    "ownerAddress": address,
+                    "tokenType": "fungible"
+                }
+            }, timeout=10)
+            das_data = das_res.json().get("result", {})
+            has_liquidity = das_data.get("total", 0) > 0
+            if has_liquidity:
+                checks.append({"status": "safe", "text": "Token has on-chain activity detected", "tag": "Safe"})
+            else:
+                checks.append({"status": "warn", "text": "No significant on-chain activity found", "tag": "Caution"})
+        except:
+            checks.append({"status": "warn", "text": "Could not verify liquidity — check manually", "tag": "Caution"})
 
         score = max(0, min(100, score))
 
