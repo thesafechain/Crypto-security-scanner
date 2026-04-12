@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- SEO meta tags — filled dynamically -->
+<title id="page-title">Token Security Report — TheSafeChain</title>
+<meta name="description" id="meta-desc" content="Full security analysis of this crypto token. Check for honeypots, rugpulls, dangerous permissions and more."/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" id="canonical" href="https://www.thesafechain.xyz/token.html"/>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="TheSafeChain"/>
+<meta property="og:title" id="og-title" content="Token Security Report — TheSafeChain"/>
+<meta property="og:description" id="og-desc" content="Full on-chain security analysis. Detect rugpulls, honeypots and dangerous tokens instantly."/>
+<meta property="og:url" id="og-url" content="https://www.thesafechain.xyz/token.html"/>
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:site" content="@thesafechain"/>
+<meta name="twitter:title" id="tw-title" content="Token Security Report — TheSafeChain"/>
+<meta name="twitter:description" id="tw-desc" content="Full on-chain security analysis."/>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0C0F; --bg2: #0F1115;
+  --green: #00D27A; --green-dim: rgba(0,210,122,0.12); --green-glow: rgba(0,210,122,0.25);
+  --red: #FF4D4D; --amber: #FFB547;
+  --text: #F0F2F5; --text-muted: #6B7280; --text-dim: #9CA3AF;
+  --border: rgba(255,255,255,0.07); --border-green: rgba(0,210,122,0.3);
+  --radius: 14px; --radius-sm: 8px;
+  --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+}
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,210,122,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,122,0.03) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+
+nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 48px; border-bottom: 1px solid var(--border); background: rgba(10,12,15,0.85); backdrop-filter: blur(20px); }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-icon { width: 36px; height: 36px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.logo-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text); }
+.logo-name span { color: var(--green); }
+.nav-btn { background: var(--green); color: #000; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; text-decoration: none; }
+
+.page { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 48px 24px 100px; }
+
+.loading { text-align: center; padding: 80px; }
+.spinner { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.token-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+.token-info { display: flex; align-items: center; gap: 16px; }
+.token-av { width: 56px; height: 56px; border-radius: 14px; background: var(--green-dim); border: 1px solid var(--border-green); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--green); }
+.token-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.token-addr { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px; }
+.risk-badge { padding: 8px 18px; border-radius: 99px; font-size: 14px; font-weight: 600; font-family: var(--font-mono); }
+.risk-low { background: rgba(0,210,122,0.15); color: var(--green); border: 1px solid var(--border-green); }
+.risk-medium { background: rgba(255,181,71,0.15); color: var(--amber); border: 1px solid rgba(255,181,71,0.3); }
+.risk-high { background: rgba(255,77,77,0.15); color: var(--red); border: 1px solid rgba(255,77,77,0.3); }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+.val-green { color: var(--green); }
+.val-red { color: var(--red); }
+.val-dim { color: var(--text-dim); }
+
+.score-bar-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 20px; }
+.score-bar-top { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; color: var(--text-muted); }
+.score-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; }
+.score-bar-fill { height: 6px; border-radius: 3px; background: var(--green); transition: width 1s ease; }
+
+.checks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+.chk { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+.chk-safe { border-left: 2px solid var(--green); }
+.chk-warn { border-left: 2px solid var(--amber); }
+.chk-danger { border-left: 2px solid var(--red); }
+.chk-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.chk-safe .chk-icon { background: rgba(0,210,122,0.15); color: var(--green); }
+.chk-warn .chk-icon { background: rgba(255,181,71,0.15); color: var(--amber); }
+.chk-danger .chk-icon { background: rgba(255,77,77,0.15); color: var(--red); }
+.chk-text { flex: 1; font-size: 14px; }
+.chk-tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; font-family: var(--font-mono); }
+.tag-safe { background: rgba(0,210,122,0.12); color: var(--green); }
+.tag-warn { background: rgba(255,181,71,0.12); color: var(--amber); }
+.tag-danger { background: rgba(255,77,77,0.12); color: var(--red); }
+
+.cta-box { background: var(--bg2); border: 1px solid var(--border-green); border-radius: var(--radius); padding: 28px; text-align: center; position: relative; overflow: hidden; }
+.cta-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
+.cta-box h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.cta-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+.cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary { background: var(--green); color: #000; border: none; padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; font-family: var(--font-body); cursor: pointer; text-decoration: none; display: inline-block; }
+.btn-secondary { background: transparent; color: var(--green); border: 1px solid var(--border-green); padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; text-decoration: none; display: inline-block; }
+
+.share-row { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+.share-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); text-decoration: none; transition: all 0.2s; }
+.share-btn:hover { border-color: var(--border-green); color: var(--green); }
+
+@media (max-width: 640px) {
+  nav { padding: 16px 20px; }
+  .page { padding: 32px 16px 80px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .token-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" stroke="#000" stroke-width="1.5" fill="none"/>
+        <path d="M9 6L11.5 7.5V10.5L9 12L6.5 10.5V7.5L9 6Z" fill="#000"/>
+      </svg>
+    </div>
+    <span class="logo-name">the<span>safechain</span></span>
+  </a>
+  <a href="/" class="nav-btn">Scan a token</a>
+</nav>
+
+<div class="page">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p style="color:var(--text-muted);">Loading security report...</p>
+  </div>
+
+  <div id="report" style="display:none;"></div>
+</div>
+
+<script>
+const BACKEND = 'https://crypto-security-scanner-production.up.railway.app';
+
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return { address: p.get('address') || p.get('a'), chain: p.get('chain') || p.get('c') || 'ethereum' };
+}
+
+function shortAddr(a) { return a.slice(0,8) + '...' + a.slice(-6); }
+
+function updateMeta(name, symbol, score, address, chain) {
+  const title = `${name} (${symbol}) Security Report — ${score}/100 — TheSafeChain`;
+  const desc = `${name} scored ${score}/100 on TheSafeChain's security scanner. Check honeypot status, ownership, liquidity and more for this ${chain} token.`;
+  const url = `https://www.thesafechain.xyz/token.html?address=${address}&chain=${chain}`;
+
+  document.getElementById('page-title').textContent = title;
+  document.title = title;
+  document.getElementById('meta-desc').content = desc;
+  document.getElementById('og-title').content = title;
+  document.getElementById('og-desc').content = desc;
+  document.getElementById('og-url').content = url;
+  document.getElementById('tw-title').content = title;
+  document.getElementById('tw-desc').content = desc;
+  document.getElementById('canonical').href = url;
+}
+
+async function loadReport() {
+  const { address, chain } = getParams();
+
+  if (!address) {
+    document.getElementById('loading').innerHTML = '<p style="color:var(--text-muted);">No token address provided. <a href="/" style="color:var(--green);">Scan a token →</a></p>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BACKEND}/api/analyze?address=${address}&chain=${chain}`);
+    const d = await res.json();
+
+    if (d.error) {
+      document.getElementById('loading').innerHTML = `<p style="color:var(--text-muted);">${d.error}. <a href="/" style="color:var(--green);">Try again →</a></p>`;
+      return;
+    }
+
+    const name = d.token_name || 'Unknown Token';
+    const symbol = d.token_symbol || '???';
+    const score = d.score || 0;
+    const risk = d.risk || 'Unknown';
+    const riskLevel = d.risk_level || 'medium';
+    const checks = d.checks || [];
+    const holders = d.holder_count ? Number(d.holder_count).toLocaleString() : '?';
+    const isHoneypot = d.is_honeypot ? 'Yes ⚠️' : 'No ✓';
+    const honeypotColor = d.is_honeypot ? 'val-red' : 'val-green';
+    const sym = symbol.slice(0,3);
+    const riskClass = riskLevel === 'low' ? 'risk-low' : riskLevel === 'medium' ? 'risk-medium' : 'risk-high';
+    const scoreColor = score >= 70 ? 'val-green' : score >= 40 ? '' : 'val-red';
+    const shareUrl = encodeURIComponent(`https://www.thesafechain.xyz/token.html?address=${address}&chain=${chain}`);
+    const shareText = encodeURIComponent(`${name} (${symbol}) scored ${score}/100 on @thesafechain security scanner. ${risk}.`);
+
+    updateMeta(name, symbol, score, address, chain);
+
+    const checksHTML = checks.map(c => {
+      const cls = c.status==='safe'?'chk-safe':c.status==='warn'?'chk-warn':'chk-danger';
+      const icon = c.status==='safe'?'✓':c.status==='warn'?'!':'✕';
+      const tagCls = c.status==='safe'?'tag-safe':c.status==='warn'?'tag-warn':'tag-danger';
+      return `<div class="chk ${cls}"><span class="chk-icon">${icon}</span><span class="chk-text">${c.text}</span><span class="chk-tag ${tagCls}">${c.tag}</span></div>`;
+    }).join('');
+
+    document.getElementById('report').innerHTML = `
+      <div class="token-header">
+        <div class="token-info">
+          <div class="token-av">${sym}</div>
+          <div>
+            <div class="token-name">${name} <span style="color:var(--text-muted);font-weight:400;">(${symbol})</span></div>
+            <div class="token-addr">${shortAddr(address)} · ${chain}</div>
+          </div>
+        </div>
+        <div class="risk-badge ${riskClass}">● ${risk}</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card"><div class="stat-label">Security score</div><div class="stat-val ${scoreColor}">${score}/100</div></div>
+        <div class="stat-card"><div class="stat-label">Honeypot</div><div class="stat-val ${honeypotColor}">${isHoneypot}</div></div>
+        <div class="stat-card"><div class="stat-label">Holders</div><div class="stat-val val-dim">${holders}</div></div>
+        <div class="stat-card"><div class="stat-label">Network</div><div class="stat-val val-dim" style="font-size:16px;text-transform:capitalize;">${chain}</div></div>
+      </div>
+
+      <div class="score-bar-wrap">
+        <div class="score-bar-top"><span>Security score</span><span>${score}/100</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill" id="score-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="checks">${checksHTML}</div>
+
+      <div class="cta-box">
+        <h3>Scan your entire wallet</h3>
+        <p>Connect your wallet and TheSafeChain automatically checks every token you hold — flagging dangerous ones before you lose money.</p>
+        <div class="cta-buttons">
+          <a href="/dashboard.html" class="btn-primary">Connect wallet — it's free</a>
+          <a href="/" class="btn-secondary">Scan another token</a>
+        </div>
+        <div class="share-row">
+          <a href="https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}" target="_blank" class="share-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Share on X
+          </a>
+          <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" class="share-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.94c-.12.56-.46.7-.92.44l-2.56-1.88-1.24 1.18c-.14.14-.26.26-.52.26l.18-2.62 4.74-4.28c.2-.18-.04-.28-.32-.1L7.46 14.5l-2.5-.78c-.54-.16-.56-.54.12-.8l9.76-3.76c.46-.16.86.1.7.64z"/></svg>
+            Share on Telegram
+          </a>
+          <button onclick="navigator.clipboard.writeText(window.location.href); this.textContent='Copied!';" class="share-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy link
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('report').style.display = 'block';
+    setTimeout(() => {
+      const fill = document.getElementById('score-fill');
+      if (fill) fill.style.width = score + '%';
+    }, 100);
+
+  } catch(e) {
+    document.getElementById('loading').innerHTML = '<p style="color:var(--text-muted);">Could not load report. <a href="/" style="color:var(--green);">Try again →</a></p>';
+  }
+}
+
+loadReport();
+</script>
+</body>
+</html>

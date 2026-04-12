@@ -93,6 +93,13 @@ function renderResult(d) {
       <div class="score-track"><div class="score-fill" style="width:${d.score}%;background:${barColor};"></div></div>
     </div>
     <div class="checks-wrap">${checksHTML}</div>
+    <div style="margin-top:16px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span style="font-size:13px;color:var(--text-muted);">Share this report</span>
+      <div style="display:flex;gap:8px;">
+        <a href="/token.html?address=${d.address}&chain=${selectedChain}" target="_blank" style="font-size:12px;font-weight:600;color:var(--green);text-decoration:none;padding:6px 14px;border:1px solid var(--border-green);border-radius:99px;">View full report →</a>
+        <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(d.token_name+' ('+d.token_symbol+') scored '+d.score+'/100 on @thesafechain — '+d.risk)}&url=${encodeURIComponent('https://www.thesafechain.xyz/token.html?address='+d.address+'&chain='+selectedChain)}" target="_blank" style="font-size:12px;font-weight:600;color:var(--text-muted);text-decoration:none;padding:6px 14px;border:1px solid var(--border);border-radius:99px;">Share on X</a>
+      </div>
+    </div>
   `;
 
   const wrap = document.getElementById('result-wrap');
